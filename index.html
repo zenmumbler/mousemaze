@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf8">
+	<title>Amazement</title>
+	<style>
+		body {
+			background-image: radial-gradient(rgb(18, 176, 244) 0%, rgb(16, 41, 98) 90%);
+			color: white;
+		}
+		#game {
+			min-height: 600px;
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+		}
+		#maze {
+			background-image: radial-gradient(rgb(48, 48, 48) 0%, rgb(16, 16, 16) 90%);
+			width: 500px;
+			height: 500px;
+			margin-right: 30px;
+		}
+		#ui {
+			background-color: red;
+			width: 300px;
+			height: 500px;
+		}
+		#movement {
+			position: absolute;
+		}
+		#movement button {
+			position: absolute;
+			width: 100px;
+			height: 50px;
+		}
+		#up { top: 0; left: 100px; }
+		#left { top: 60px; left: 45px; }
+		#right { top: 60px; left: 155px; }
+		#down { top: 120px; left: 100px; }
+	</style>
+</head>
+<body>
+	<header>
+		<h1>A-MAZE-ING</h1>
+	</header>
+	<section id="game">
+		<section id="maze"><canvas width="500" height="500"></canvas></section>
+		<section id="ui">
+			<div id="movement">
+				<button id="up">UP</button>
+				<button id="right">RIGHT</button>
+				<button id="down">DOWN</button>
+				<button id="left">LEFT</button>
+			</div>
+		</section>
+	</section>
+	<script src="maze.js"></script>
+</body>

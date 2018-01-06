@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <head>
 	<meta charset="utf8">
+	<meta name="viewport" content="width=1024, initial-scale=1">
 	<title>Mouse Maze</title>
 	<style>
+		html {
+			height: 100%;
+		}
 		body {
 			background-image: radial-gradient(rgb(18, 176, 244) 0%, rgb(16, 41, 98) 90%);
 			color: white;
 			font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+			height: 100%;
 		}
 		h1 {
 			text-align: center;
 			text-shadow: 3px 3px 3px rgba(0, 0, 0, .8);
 		}
 		#game {
-			min-height: 600px;
+			height: 100%;
 			display: flex;
 			flex-direction: row;
 			justify-content: center;
@@ -94,17 +99,35 @@
 		}
 		#movement {
 			position: absolute;
-			top: 50px;
+			top: 10px;
 		}
 		#movement button {
+			display: block;
 			position: absolute;
-			width: 100px;
-			height: 50px;
+			width: 102px;
+			height: 102px;
+			border: none;
+			background-color: transparent;
+			background-size: contain;
+			color: white;
 		}
-		#up { top: 0; left: 90px; }
-		#left { top: 60px; left: 35px; }
-		#right { top: 60px; left: 145px; }
-		#down { top: 120px; left: 90px; }
+		#up { top: 0; left: 88px; background-image: url(img/arrow-up.png); }
+		#left { top: 110px; left: 32px; background-image: url(img/arrow-left.png); }
+		#right { top: 110px; left: 146px; background-image: url(img/arrow-right.png); }
+		#down { top: 220px; left: 88px; background-image: url(img/arrow-down.png); }
+
+		#newgame {
+			position: absolute;
+			top: 390px;
+			padding-left: 25px;
+		}
+		#newgame button {
+			font-size: 16px;
+			width: 110px;
+			height: 30px;
+			margin-bottom: 10px;
+			margin-right: 5px;
+		}
 	</style>
 </head>
 <body>
@@ -124,6 +147,13 @@
 				<button id="right">RIGHT</button>
 				<button id="down">DOWN</button>
 				<button id="left">LEFT</button>
+			</div>
+
+			<div id="newgame">
+				<button id="small">Tiny</button>
+				<button id="medium">Normal</button><br>
+				<button id="large">Large</button>
+				<button id="xlarge">EnorMouse</button>
 			</div>
 		</section>
 	</section>

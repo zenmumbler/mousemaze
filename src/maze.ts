@@ -271,19 +271,3 @@ function render(gv: GridView, img: HTMLImageElement) {
 		}
 	});
 }
-
-function makeMaze() {
-	const grid = new Grid(11, 11);
-	grid.build(threshold(recursiveBacktrack, random, 0.85));
-	const ctx = document.querySelector("canvas")!.getContext("2d")!;
-	const gv = new GridView(grid, ctx);
-	const exits = gv.grid.deadends.map(p => ({
-		...p,
-		dist: grid.minDistance(p, { x: 0, y: grid.height - 1 }) 
-	}));
-	exits.sort((a, b) => a.dist - b.dist);
-	console.info(exits);
-	render(gv);
-}
-
-setTimeout(makeMaze, 10);

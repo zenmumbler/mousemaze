@@ -63,7 +63,6 @@ var Grid = (function () {
         this.width_ = width;
         this.height_ = height;
         this.data_ = new Array(width * height).fill(0);
-        this.deadends_ = [];
     }
     Grid.prototype.offset = function (x, y) {
         return (y * this.width_) + x;
@@ -82,7 +81,6 @@ var Grid = (function () {
         var stack = [];
         this.data_.fill(0);
         var _d = [w >> 1, h >> 1], ix = _d[0], iy = _d[1];
-        this.set(ix, iy, 4);
         stack.push({ x: ix, y: iy });
         while (stack.length) {
             var index = picker(stack.length - 1);
@@ -100,10 +98,6 @@ var Grid = (function () {
                 }
             }
             if (deadend) {
-                var exits = this.get(x, y);
-                if (exits === 1 || exits === 2 || exits === 4 || exits === 8) {
-                    this.deadends_.push({ x: x, y: y });
-                }
                 stack.splice(index, 1);
             }
         }
@@ -155,7 +149,11 @@ var Grid = (function () {
     };
     Object.defineProperty(Grid.prototype, "deadends", {
         get: function () {
-            return this.deadends_.slice();
+            var w = this.width_;
+            var cells = this.data_.map(function (c, off) { return ({ dirs: c, x: off % w, y: Math.floor(off / w) }); });
+            return cells.filter(function (c) {
+                return (c.dirs === 1 || c.dirs === 2 || c.dirs === 4 || c.dirs === 8);
+            });
         },
         enumerable: true,
         configurable: true
@@ -232,10 +230,10 @@ var GridView = (function () {
     };
     return GridView;
 }());
-function render(gv) {
+function render(gv, img) {
     var ctx = gv.ctx;
     var WDH = scalePos(gv.wallDim, .5);
-    ctx.strokeStyle = "#aaa";
+    ctx.strokeStyle = ctx.createPattern(img, "repeat");
     ctx.lineCap = "round";
     ctx.lineWidth = gv.WD;
     gv.grid.each(function (pos, dirs) {
@@ -261,20 +259,65 @@ function render(gv) {
         }
     });
 }
-function makeMaze() {
-    var grid = new Grid(11, 11);
-    grid.build(threshold(recursiveBacktrack, random, 0.85));
-    var ctx = document.querySelector("canvas").getContext("2d");
-    var gv = new GridView(grid, ctx);
-    var exits = gv.grid.deadends.map(function (p) { return (__assign({}, p, { dist: grid.minDistance(p, { x: 0, y: grid.height - 1 }) })); });
-    exits.sort(function (a, b) { return a.dist - b.dist; });
-    console.info(exits);
-    render(gv);
+var state;
+function loadImage(src) {
+    return new Promise(function (resolve, reject) {
+        var img = new Image();
+        img.onload = function () { return resolve(img); };
+        img.onerror = function () { return reject("fail"); };
+        img.src = src;
+    });
 }
-setTimeout(makeMaze, 10);
-var state = {
-    ctx: document.querySelector("canvas").getContext("2d"),
-    grid: new Grid(11, 11),
-    positions: [],
-    target: { x: 0, y: 0 }
-};
+function main() {
+    var GRID_SIZE;
+    var sizeArg = location.search.substr(1).toLowerCase() || "m";
+    switch (sizeArg) {
+        case "s":
+            GRID_SIZE = 5;
+            break;
+        case "m":
+            GRID_SIZE = 7;
+            break;
+        case "l":
+            GRID_SIZE = 9;
+            break;
+        case "xl":
+            GRID_SIZE = 11;
+            break;
+        default:
+            GRID_SIZE = 7;
+            break;
+    }
+    var grid = new Grid(GRID_SIZE, GRID_SIZE);
+    grid.build(threshold(recursiveBacktrack, random, 0.85));
+    var starts = grid.deadends.map(function (p) { return (__assign({}, p, { dist: grid.minDistance({ x: 0, y: grid.height - 1 }, p) })); });
+    starts.sort(function (a, b) { return a.dist - b.dist; });
+    var start = starts.shift();
+    var exits = grid.deadends.map(function (p) { return (__assign({}, p, { dist: grid.minDistance(start, p) })); });
+    exits.sort(function (a, b) { return a.dist - b.dist; });
+    var target = exits.pop();
+    var ctx = document.querySelector("canvas").getContext("2d");
+    var view = new GridView(grid, ctx);
+    state = {
+        ctx: ctx,
+        mouse: document.querySelector("#mouse"),
+        cheese: document.querySelector("#cheese"),
+        grid: grid,
+        view: view,
+        target: target,
+        positions: [start],
+        playerDir: 4
+    };
+    loadImage("img/wood.png").then(function (img) {
+        render(view, img);
+    });
+    var mousePos = view.cellCentre(start);
+    state.mouse.className = "obj obj" + GRID_SIZE;
+    state.mouse.style.left = mousePos.x + "px";
+    state.mouse.style.top = mousePos.y + "px";
+    var exitPos = view.cellCentre(target);
+    state.cheese.className = "obj obj" + GRID_SIZE;
+    state.cheese.style.left = exitPos.x + "px";
+    state.cheese.style.top = exitPos.y + "px";
+}
+main();

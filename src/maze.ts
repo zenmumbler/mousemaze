@@ -241,10 +241,10 @@ class GridView {
 	}
 }
 
-function render(gv: GridView) {
+function render(gv: GridView, img: HTMLImageElement) {
 	const ctx = gv.ctx;
 	const WDH = scalePos(gv.wallDim, .5);
-	ctx.strokeStyle = "#aaa";
+	ctx.strokeStyle = ctx.createPattern(img, "repeat");
 	ctx.lineCap = "round";
 	ctx.lineWidth = gv.WD;
 

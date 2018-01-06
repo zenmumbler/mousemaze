@@ -1,9 +1,24 @@
 /// <reference path="./maze.ts" />
 
+const enum PlayerState {
+	Idle,
+	Moving
+}
+
+const enum Key {
+	UP = 38,
+	DOWN = 40,
+	LEFT = 37,
+	RIGHT = 39,
+}
+
+const SECS_PER_TILE = .5;
+
 interface GameState {
 	ctx: CanvasRenderingContext2D;
 	mouse: HTMLElement;
 	cheese: HTMLElement;
+	mouseBaseTransform: string;
 
 	grid: Grid;
 	view: GridView;
@@ -11,6 +26,9 @@ interface GameState {
 
 	positions: GridPos[];
 	playerDir: Dir;
+	playerState: PlayerState;
+	playerTarget: GridPos;
+	playerT0: number;
 }
 
 let state: GameState;
@@ -22,6 +40,56 @@ function loadImage(src: string) {
 		img.onerror = () => reject("fail");
 		img.src = src;
 	});
+}
+
+function move(dir: Dir) {
+	if (state.playerState !== PlayerState.Idle) {
+		return;
+	}
+	state.playerState = PlayerState.Moving;
+	state.playerDir = dir;
+	state.playerT0 = Date.now() / 1000;
+	state.playerTarget = state.grid.nextStop(state.positions[0], dir);
+
+	const rot = { [Dir.N]: 180, [Dir.E]: -90, [Dir.S]: 0, [Dir.W]: 90 }[dir];
+	state.mouse.style.transform = state.mouseBaseTransform + `rotate(${rot}deg)`;
+
+	const placeMouse = (p: GridPos) => {
+		state.mouse.style.left = `${p.x}px`;
+		state.mouse.style.top = `${p.y}px`;	
+	};
+	const interpolatePos = (a: GridPos, b: GridPos, t: number) => {
+		return {
+			x: a.x + (b.x - a.x) * t,
+			y: a.y + (b.y - a.y) * t
+		};
+	};
+
+	const step = () => {
+		let curPos = state.positions[0];
+		let nextPos = addPos(curPos, { x: dirDX.get(dir)!, y: dirDY.get(dir)! });
+		
+		let dt = (Date.now() / 1000) - state.playerT0;
+		if (dt >= SECS_PER_TILE) {
+			state.positions.unshift(nextPos);
+			curPos = nextPos;
+			nextPos = addPos(curPos, { x: dirDX.get(dir)!, y: dirDY.get(dir)! });
+
+			if (equalPos(nextPos, state.playerTarget)) {
+				state.playerState = PlayerState.Idle;
+				placeMouse(state.view.cellCentre(nextPos));
+				return;
+			}
+			else {
+				dt -= SECS_PER_TILE;
+				state.playerT0 += SECS_PER_TILE;
+			}
+		}
+
+		placeMouse(interpolatePos(state.view.cellCentre(curPos), state.view.cellCentre(nextPos), dt / SECS_PER_TILE));
+		requestAnimationFrame(step);
+	};
+	step();
 }
 
 function main() {
@@ -65,13 +133,17 @@ function main() {
 		ctx,
 		mouse: document.querySelector("#mouse")! as HTMLElement,
 		cheese: document.querySelector("#cheese")! as HTMLElement,
+		mouseBaseTransform: "",
 
 		grid,
 		view,
 		target,
 
 		positions: [start],
-		playerDir: Dir.S
+		playerDir: Dir.S,
+		playerState: PlayerState.Idle,
+		playerTarget: start,
+		playerT0: 0
 	};
 
 	// render maze
@@ -112,4 +184,6 @@ function main() {
 
 }
 
-main();
+window.onload = () => {
+	main();
+};

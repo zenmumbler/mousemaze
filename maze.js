@@ -25,6 +25,14 @@ var dirDY = new Map([
     [4, 1],
     [8, 0]
 ]);
+function popcnt8(b) {
+    var bi3b = 0xE994;
+    var c;
+    c = 3 & (bi3b >> ((b << 1) & 14));
+    c += 3 & (bi3b >> ((b >> 2) & 14));
+    c += 3 & (bi3b >> ((b >> 5) & 6));
+    return c;
+}
 function scalePos(p, s) {
     return {
         x: p.x * s,
@@ -101,6 +109,19 @@ var Grid = (function () {
                 stack.splice(index, 1);
             }
         }
+    };
+    Grid.prototype.nextStop = function (from, dir) {
+        var x = from.x, y = from.y;
+        var dirs = this.get(x, y);
+        while (dirs & dir) {
+            x += dirDX.get(dir);
+            y += dirDY.get(dir);
+            dirs = this.get(x, y);
+            if (popcnt8(dirs) > 2) {
+                break;
+            }
+        }
+        return { x: x, y: y };
     };
     Grid.prototype.minDistance = function (pa, pb) {
         if (equalPos(pa, pb)) {
@@ -259,6 +280,7 @@ function render(gv, img) {
         }
     });
 }
+var SECS_PER_TILE = .5;
 var state;
 function loadImage(src) {
     return new Promise(function (resolve, reject) {
@@ -267,6 +289,50 @@ function loadImage(src) {
         img.onerror = function () { return reject("fail"); };
         img.src = src;
     });
+}
+function move(dir) {
+    if (state.playerState !== 0) {
+        return;
+    }
+    state.playerState = 1;
+    state.playerDir = dir;
+    state.playerT0 = Date.now() / 1000;
+    state.playerTarget = state.grid.nextStop(state.positions[0], dir);
+    var rot = (_a = {}, _a[1] = 180, _a[2] = -90, _a[4] = 0, _a[8] = 90, _a)[dir];
+    state.mouse.style.transform = state.mouseBaseTransform + ("rotate(" + rot + "deg)");
+    var placeMouse = function (p) {
+        state.mouse.style.left = p.x + "px";
+        state.mouse.style.top = p.y + "px";
+    };
+    var interpolatePos = function (a, b, t) {
+        return {
+            x: a.x + (b.x - a.x) * t,
+            y: a.y + (b.y - a.y) * t
+        };
+    };
+    var step = function () {
+        var curPos = state.positions[0];
+        var nextPos = addPos(curPos, { x: dirDX.get(dir), y: dirDY.get(dir) });
+        var dt = (Date.now() / 1000) - state.playerT0;
+        if (dt >= SECS_PER_TILE) {
+            state.positions.unshift(nextPos);
+            curPos = nextPos;
+            nextPos = addPos(curPos, { x: dirDX.get(dir), y: dirDY.get(dir) });
+            if (equalPos(nextPos, state.playerTarget)) {
+                state.playerState = 0;
+                placeMouse(state.view.cellCentre(nextPos));
+                return;
+            }
+            else {
+                dt -= SECS_PER_TILE;
+                state.playerT0 += SECS_PER_TILE;
+            }
+        }
+        placeMouse(interpolatePos(state.view.cellCentre(curPos), state.view.cellCentre(nextPos), dt / SECS_PER_TILE));
+        requestAnimationFrame(step);
+    };
+    step();
+    var _a;
 }
 function main() {
     var GRID_SIZE;
@@ -302,11 +368,15 @@ function main() {
         ctx: ctx,
         mouse: document.querySelector("#mouse"),
         cheese: document.querySelector("#cheese"),
+        mouseBaseTransform: "",
         grid: grid,
         view: view,
         target: target,
         positions: [start],
-        playerDir: 4
+        playerDir: 4,
+        playerState: 0,
+        playerTarget: start,
+        playerT0: 0
     };
     loadImage("img/wood.png").then(function (img) {
         render(view, img);
@@ -319,5 +389,33 @@ function main() {
     state.cheese.className = "obj obj" + GRID_SIZE;
     state.cheese.style.left = exitPos.x + "px";
     state.cheese.style.top = exitPos.y + "px";
+    state.mouseBaseTransform = (getComputedStyle(state.mouse).transform || "") + " ";
+    state.mouse.classList.add("animated");
+    document.body.addEventListener("keydown", function (evt) {
+        if (!evt.metaKey) {
+            evt.preventDefault();
+        }
+        if (evt.repeat) {
+            return;
+        }
+        if (evt.keyCode === 38) {
+            move(1);
+        }
+        else if (evt.keyCode === 39) {
+            move(2);
+        }
+        else if (evt.keyCode === 40) {
+            move(4);
+        }
+        else if (evt.keyCode === 37) {
+            move(8);
+        }
+    });
+    document.querySelector("#up").addEventListener("click", function () { return move(1); });
+    document.querySelector("#right").addEventListener("click", function () { return move(2); });
+    document.querySelector("#down").addEventListener("click", function () { return move(4); });
+    document.querySelector("#left").addEventListener("click", function () { return move(8); });
 }
-main();
+window.onload = function () {
+    main();
+};

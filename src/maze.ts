@@ -270,6 +270,7 @@ function render(gv: GridView, img: HTMLImageElement) {
 	ctx.strokeStyle = ctx.createPattern(img, "repeat");
 	ctx.lineCap = "round";
 	ctx.lineWidth = gv.WD;
+	ctx.clearRect(0, 0, 500, 500);
 
 	gv.grid.each((pos, dirs) => {
 		const line = (a: GridPos, b: GridPos) => {

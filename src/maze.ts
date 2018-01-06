@@ -33,6 +33,15 @@ interface GridPos {
 	y: number;
 }
 
+function popcnt8(b: number) {
+	const bi3b = 0xE994; // 0b1110 1001 1001 0100; // 3 2 2 1  2 1 1 0
+	let c: number;
+	c  = 3 & (bi3b >> ((b << 1) & 14));
+	c += 3 & (bi3b >> ((b >> 2) & 14));
+	c += 3 & (bi3b >> ((b >> 5) & 6));
+	return c;
+}
+
 function scalePos(p: GridPos, s: number): GridPos {
 	return {
 		x: p.x * s,
@@ -129,6 +138,20 @@ class Grid {
 				stack.splice(index, 1);
 			}
 		}
+	}
+
+	nextStop(from: GridPos, dir: Dir): GridPos {
+		let { x, y } = from;
+		let dirs = this.get(x, y);
+		while (dirs & dir) {
+			x += dirDX.get(dir)!;
+			y += dirDY.get(dir)!;
+			dirs = this.get(x, y);
+			if (popcnt8(dirs) > 2) {
+				break;
+			}
+		}
+		return { x, y };
 	}
 
 	minDistance(pa: GridPos, pb: GridPos) {

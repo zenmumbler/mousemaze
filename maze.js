@@ -290,11 +290,17 @@ function loadImage(src) {
         img.src = src;
     });
 }
+function checkWin() {
+    if (equalPos(state.positions[0], state.target)) {
+        state.playerState = 2;
+        document.querySelector("#winner").style.display = "block";
+    }
+}
 function move(dir) {
     if (state.playerState !== 0) {
         return;
     }
-    var rot = (_a = {}, _a[1] = 180, _a[2] = state.playerDir === 1 ? 270 : -90, _a[4] = 0, _a[8] = 90, _a)[dir];
+    var rot = (_a = {}, _a[1] = 180, _a[2] = -90, _a[4] = 0, _a[8] = 90, _a)[dir];
     state.mouse.style.transform = state.mouseBaseTransform + ("rotate(" + rot + "deg)");
     state.playerDir = dir;
     state.playerTarget = state.grid.nextStop(state.positions[0], dir);
@@ -324,6 +330,7 @@ function move(dir) {
             if (equalPos(curPos, state.playerTarget)) {
                 state.playerState = 0;
                 placeMouse(state.view.cellCentre(curPos));
+                checkWin();
                 return;
             }
             else {

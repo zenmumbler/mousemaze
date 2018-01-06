@@ -2,7 +2,8 @@
 
 const enum PlayerState {
 	Idle,
-	Moving
+	Moving,
+	Winner
 }
 
 const enum Key {
@@ -42,12 +43,19 @@ function loadImage(src: string) {
 	});
 }
 
+function checkWin() {
+	if (equalPos(state.positions[0], state.target)) {
+		state.playerState = PlayerState.Winner;
+		(document.querySelector("#winner")! as HTMLElement).style.display = "block";
+	}
+}
+
 function move(dir: Dir) {
 	if (state.playerState !== PlayerState.Idle) {
 		return;
 	}
 
-	const rot = { [Dir.N]: 180, [Dir.E]: state.playerDir === Dir.N ? 270 : -90, [Dir.S]: 0, [Dir.W]: 90 }[dir];
+	const rot = { [Dir.N]: 180, [Dir.E]: -90, [Dir.S]: 0, [Dir.W]: 90 }[dir];
 	state.mouse.style.transform = state.mouseBaseTransform + `rotate(${rot}deg)`;
 
 	state.playerDir = dir;
@@ -83,6 +91,7 @@ function move(dir: Dir) {
 			if (equalPos(curPos, state.playerTarget)) {
 				state.playerState = PlayerState.Idle;
 				placeMouse(state.view.cellCentre(curPos));
+				checkWin();
 				return;
 			}
 			else {

@@ -294,12 +294,15 @@ function move(dir) {
     if (state.playerState !== 0) {
         return;
     }
-    state.playerState = 1;
-    state.playerDir = dir;
-    state.playerT0 = Date.now() / 1000;
-    state.playerTarget = state.grid.nextStop(state.positions[0], dir);
-    var rot = (_a = {}, _a[1] = 180, _a[2] = -90, _a[4] = 0, _a[8] = 90, _a)[dir];
+    var rot = (_a = {}, _a[1] = 180, _a[2] = state.playerDir === 1 ? 270 : -90, _a[4] = 0, _a[8] = 90, _a)[dir];
     state.mouse.style.transform = state.mouseBaseTransform + ("rotate(" + rot + "deg)");
+    state.playerDir = dir;
+    state.playerTarget = state.grid.nextStop(state.positions[0], dir);
+    if (equalPos(state.playerTarget, state.positions[0])) {
+        return;
+    }
+    state.playerState = 1;
+    state.playerT0 = Date.now() / 1000;
     var placeMouse = function (p) {
         state.mouse.style.left = p.x + "px";
         state.mouse.style.top = p.y + "px";
@@ -318,9 +321,9 @@ function move(dir) {
             state.positions.unshift(nextPos);
             curPos = nextPos;
             nextPos = addPos(curPos, { x: dirDX.get(dir), y: dirDY.get(dir) });
-            if (equalPos(nextPos, state.playerTarget)) {
+            if (equalPos(curPos, state.playerTarget)) {
                 state.playerState = 0;
-                placeMouse(state.view.cellCentre(nextPos));
+                placeMouse(state.view.cellCentre(curPos));
                 return;
             }
             else {

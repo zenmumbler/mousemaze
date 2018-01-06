@@ -46,13 +46,18 @@ function move(dir: Dir) {
 	if (state.playerState !== PlayerState.Idle) {
 		return;
 	}
-	state.playerState = PlayerState.Moving;
+
+	const rot = { [Dir.N]: 180, [Dir.E]: state.playerDir === Dir.N ? 270 : -90, [Dir.S]: 0, [Dir.W]: 90 }[dir];
+	state.mouse.style.transform = state.mouseBaseTransform + `rotate(${rot}deg)`;
+
 	state.playerDir = dir;
-	state.playerT0 = Date.now() / 1000;
 	state.playerTarget = state.grid.nextStop(state.positions[0], dir);
 
-	const rot = { [Dir.N]: 180, [Dir.E]: -90, [Dir.S]: 0, [Dir.W]: 90 }[dir];
-	state.mouse.style.transform = state.mouseBaseTransform + `rotate(${rot}deg)`;
+	if (equalPos(state.playerTarget, state.positions[0])) {
+		return;
+	}
+	state.playerState = PlayerState.Moving;
+	state.playerT0 = Date.now() / 1000;
 
 	const placeMouse = (p: GridPos) => {
 		state.mouse.style.left = `${p.x}px`;
@@ -75,9 +80,9 @@ function move(dir: Dir) {
 			curPos = nextPos;
 			nextPos = addPos(curPos, { x: dirDX.get(dir)!, y: dirDY.get(dir)! });
 
-			if (equalPos(nextPos, state.playerTarget)) {
+			if (equalPos(curPos, state.playerTarget)) {
 				state.playerState = PlayerState.Idle;
-				placeMouse(state.view.cellCentre(nextPos));
+				placeMouse(state.view.cellCentre(curPos));
 				return;
 			}
 			else {

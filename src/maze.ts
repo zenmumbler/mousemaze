@@ -79,13 +79,11 @@ class Grid {
 	private data_: Cell[];
 	private width_: number;
 	private height_: number;
-	private deadends_: GridPos[];
 
 	constructor(width: number, height: number) {
 		this.width_ = width;
 		this.height_ = height;
 		this.data_ = new Array(width * height).fill(0);
-		this.deadends_ = [];
 	}
 
 	offset(x: number, y: number) {
@@ -109,7 +107,6 @@ class Grid {
 		const stack: GridPos[] = [];
 		this.data_.fill(0);
 		const [ix, iy] = [w >> 1, h >> 1]; // [randInt(0, w - 1), randInt(0, h - 1)];
-		this.set(ix, iy, 4);
 		stack.push({ x: ix, y: iy });
 
 		while (stack.length) {
@@ -129,10 +126,6 @@ class Grid {
 			}
 
 			if (deadend) {
-				const exits = this.get(x, y);
-				if (exits === 1 || exits === 2 || exits === 4 || exits === 8) {
-					this.deadends_.push({ x, y });
-				}
 				stack.splice(index, 1);
 			}
 		}
@@ -189,8 +182,12 @@ class Grid {
 		}
 	}
 
-	get deadends() {
-		return this.deadends_.slice();
+	get deadends(): GridPos[] {
+		const w = this.width_;
+		const cells = this.data_.map((c, off) => ({ dirs: c, x: off % w, y: Math.floor(off / w) }));
+		return cells.filter(c => {
+			return (c.dirs === 1 || c.dirs === 2 || c.dirs === 4 || c.dirs === 8);
+		});
 	}
 
 	get width() { return this.width_; }

@@ -257,6 +257,7 @@ function render(gv, img) {
     ctx.strokeStyle = ctx.createPattern(img, "repeat");
     ctx.lineCap = "round";
     ctx.lineWidth = gv.WD;
+    ctx.clearRect(0, 0, 500, 500);
     gv.grid.each(function (pos, dirs) {
         var line = function (a, b) {
             var pa = addPos(gv.cellTopLeft(a), WDH);
@@ -344,9 +345,8 @@ function move(dir) {
     step();
     var _a;
 }
-function main() {
+function main(sizeArg, woodImage) {
     var GRID_SIZE;
-    var sizeArg = location.search.substr(1).toLowerCase() || "m";
     switch (sizeArg) {
         case "s":
             GRID_SIZE = 5;
@@ -388,9 +388,7 @@ function main() {
         playerTarget: start,
         playerT0: 0
     };
-    loadImage("img/wood.png").then(function (img) {
-        render(view, img);
-    });
+    render(view, woodImage);
     var mousePos = view.cellCentre(start);
     state.mouse.className = "obj obj" + GRID_SIZE;
     state.mouse.style.left = mousePos.x + "px";
@@ -399,33 +397,46 @@ function main() {
     state.cheese.className = "obj obj" + GRID_SIZE;
     state.cheese.style.left = exitPos.x + "px";
     state.cheese.style.top = exitPos.y + "px";
+    state.mouse.style.transform = "";
     state.mouseBaseTransform = (getComputedStyle(state.mouse).transform || "") + " ";
     state.mouse.classList.add("animated");
-    document.body.addEventListener("keydown", function (evt) {
-        if (!evt.metaKey) {
-            evt.preventDefault();
-        }
-        if (evt.repeat) {
-            return;
-        }
-        if (evt.keyCode === 38) {
-            move(1);
-        }
-        else if (evt.keyCode === 39) {
-            move(2);
-        }
-        else if (evt.keyCode === 40) {
-            move(4);
-        }
-        else if (evt.keyCode === 37) {
-            move(8);
-        }
-    });
-    document.querySelector("#up").addEventListener("click", function () { return move(1); });
-    document.querySelector("#right").addEventListener("click", function () { return move(2); });
-    document.querySelector("#down").addEventListener("click", function () { return move(4); });
-    document.querySelector("#left").addEventListener("click", function () { return move(8); });
+    document.querySelector("#winner").style.display = "none";
 }
 window.onload = function () {
-    main();
+    var sizeArg = location.search.substr(1).toLowerCase() || "m";
+    loadImage("img/wood.png").then(function (woodImage) {
+        document.querySelector("#up").addEventListener("mousedown", function () { return move(1); });
+        document.querySelector("#up").addEventListener("touchstart", function () { return move(1); });
+        document.querySelector("#right").addEventListener("mousedown", function () { return move(2); });
+        document.querySelector("#right").addEventListener("touchstart", function () { return move(2); });
+        document.querySelector("#down").addEventListener("mousedown", function () { return move(4); });
+        document.querySelector("#down").addEventListener("touchstart", function () { return move(4); });
+        document.querySelector("#left").addEventListener("mousedown", function () { return move(8); });
+        document.querySelector("#left").addEventListener("touchstart", function () { return move(8); });
+        document.querySelector("#small").addEventListener("click", function () { return main("s", woodImage); });
+        document.querySelector("#medium").addEventListener("click", function () { return main("m", woodImage); });
+        document.querySelector("#large").addEventListener("click", function () { return main("l", woodImage); });
+        document.querySelector("#xlarge").addEventListener("click", function () { return main("xl", woodImage); });
+        document.body.addEventListener("keydown", function (evt) {
+            if (!evt.metaKey) {
+                evt.preventDefault();
+            }
+            if (evt.repeat) {
+                return;
+            }
+            if (evt.keyCode === 38) {
+                move(1);
+            }
+            else if (evt.keyCode === 39) {
+                move(2);
+            }
+            else if (evt.keyCode === 40) {
+                move(4);
+            }
+            else if (evt.keyCode === 37) {
+                move(8);
+            }
+        });
+        main(sizeArg, woodImage);
+    });
 };

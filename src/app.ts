@@ -106,10 +106,9 @@ function move(dir: Dir) {
 	step();
 }
 
-function main() {
+function main(sizeArg: string, woodImage: HTMLImageElement) {
 	// grid size is determined by the search text, defaulting to M
 	let GRID_SIZE: number;
-	const sizeArg = location.search.substr(1).toLowerCase() || "m";
 	switch (sizeArg) {
 		case "s": GRID_SIZE = 5; break;
 		case "m": GRID_SIZE = 7; break;
@@ -161,9 +160,7 @@ function main() {
 	};
 
 	// render maze
-	loadImage("img/wood.png").then(img => {
-		render(view, img);
-	});
+	render(view, woodImage);
 
 	const mousePos = view.cellCentre(start);
 	state.mouse.className = `obj obj${GRID_SIZE}`;
@@ -175,29 +172,43 @@ function main() {
 	state.cheese.style.left = `${exitPos.x}px`;
 	state.cheese.style.top = `${exitPos.y}px`;
 
+	state.mouse.style.transform = "";
 	state.mouseBaseTransform = (getComputedStyle(state.mouse).transform || "") + " ";
 	state.mouse.classList.add("animated");
 
-	document.body.addEventListener("keydown", evt => {
-		if (! evt.metaKey) {
-			evt.preventDefault();
-		}
-		if (evt.repeat) {
-			return;
-		}
-		if (evt.keyCode === Key.UP) { move(Dir.N); }
-		else if (evt.keyCode === Key.RIGHT) { move(Dir.E); }
-		else if (evt.keyCode === Key.DOWN) { move(Dir.S); }
-		else if (evt.keyCode === Key.LEFT) { move(Dir.W); }
-	});
-
-	document.querySelector("#up")!.addEventListener("click", () => move(Dir.N));
-	document.querySelector("#right")!.addEventListener("click", () => move(Dir.E));
-	document.querySelector("#down")!.addEventListener("click", () => move(Dir.S));
-	document.querySelector("#left")!.addEventListener("click", () => move(Dir.W));
-
+	(document.querySelector("#winner")! as HTMLElement).style.display = "none";
 }
 
 window.onload = () => {
-	main();
+	const sizeArg = location.search.substr(1).toLowerCase() || "m";
+	loadImage("img/wood.png").then(woodImage => {
+		document.querySelector("#up")!.addEventListener("mousedown", () => move(Dir.N));
+		document.querySelector("#up")!.addEventListener("touchstart", () => move(Dir.N));
+		document.querySelector("#right")!.addEventListener("mousedown", () => move(Dir.E));
+		document.querySelector("#right")!.addEventListener("touchstart", () => move(Dir.E));
+		document.querySelector("#down")!.addEventListener("mousedown", () => move(Dir.S));
+		document.querySelector("#down")!.addEventListener("touchstart", () => move(Dir.S));
+		document.querySelector("#left")!.addEventListener("mousedown", () => move(Dir.W));
+		document.querySelector("#left")!.addEventListener("touchstart", () => move(Dir.W));
+	
+		document.querySelector("#small")!.addEventListener("click", () => main("s", woodImage));
+		document.querySelector("#medium")!.addEventListener("click", () => main("m", woodImage));
+		document.querySelector("#large")!.addEventListener("click", () => main("l", woodImage));
+		document.querySelector("#xlarge")!.addEventListener("click", () => main("xl", woodImage));
+	
+		document.body.addEventListener("keydown", evt => {
+			if (! evt.metaKey) {
+				evt.preventDefault();
+			}
+			if (evt.repeat) {
+				return;
+			}
+			if (evt.keyCode === Key.UP) { move(Dir.N); }
+			else if (evt.keyCode === Key.RIGHT) { move(Dir.E); }
+			else if (evt.keyCode === Key.DOWN) { move(Dir.S); }
+			else if (evt.keyCode === Key.LEFT) { move(Dir.W); }
+		});
+
+		main(sizeArg, woodImage);
+	});
 };

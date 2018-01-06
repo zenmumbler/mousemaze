@@ -88,6 +88,9 @@ function main() {
 	state.cheese.className = `obj obj${GRID_SIZE}`;
 	state.cheese.style.left = `${exitPos.x}px`;
 	state.cheese.style.top = `${exitPos.y}px`;
+
+	state.mouseBaseTransform = (getComputedStyle(state.mouse).transform || "") + " ";
+	state.mouse.classList.add("animated");
 }
 
 main();

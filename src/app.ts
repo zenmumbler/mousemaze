@@ -91,6 +91,25 @@ function main() {
 
 	state.mouseBaseTransform = (getComputedStyle(state.mouse).transform || "") + " ";
 	state.mouse.classList.add("animated");
+
+	document.body.addEventListener("keydown", evt => {
+		if (! evt.metaKey) {
+			evt.preventDefault();
+		}
+		if (evt.repeat) {
+			return;
+		}
+		if (evt.keyCode === Key.UP) { move(Dir.N); }
+		else if (evt.keyCode === Key.RIGHT) { move(Dir.E); }
+		else if (evt.keyCode === Key.DOWN) { move(Dir.S); }
+		else if (evt.keyCode === Key.LEFT) { move(Dir.W); }
+	});
+
+	document.querySelector("#up")!.addEventListener("click", () => move(Dir.N));
+	document.querySelector("#right")!.addEventListener("click", () => move(Dir.E));
+	document.querySelector("#down")!.addEventListener("click", () => move(Dir.S));
+	document.querySelector("#left")!.addEventListener("click", () => move(Dir.W));
+
 }
 
 main();

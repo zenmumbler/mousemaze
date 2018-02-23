@@ -11,7 +11,7 @@ maze game to play in the browser with the main feature being that the
 character stops at every intersection; no more missed turns.
 I had about 10 hours total, one evening and part of the next morning as
 they were leaving, so I treated it as a very short game jam. She was happy,
-I got a hug and all was good.
+I got a hug and all was well.
 
 All the images were taken directly from image searches, except that I made
 the mouse in the winning image look like it was at peace by closing its
